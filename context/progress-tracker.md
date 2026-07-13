@@ -9,11 +9,11 @@ Track against `context/build-plan.md`. Schema/seed under `db/` count as data fou
 ## Current Status
 
 **Phase:** Phase 1 - Foundation  
-**Last completed:** Database schema + seed SQL (`db/hms_schema.sql`, `db/hms_seed_data.sql`)  
+**Last completed:** 01 Project Shell & Routing  
 **In progress:** None  
-**Next:** 01 Project Shell & Routing
+**Next:** 02 Database Connection & Core Plumbing
 
-Product, architecture, build, standards, library, progress, and UI docs (`ui-tokens`, `ui-rules`, `ui-registry` + `designs/`) are aligned to PHP/MySQL/Tailwind HMS (Hospitality Command). Application folders (`public/`, `app/`, etc.) are not built yet.
+Product, architecture, build, standards, library, progress, and UI docs (`ui-tokens`, `ui-rules`, `ui-registry` + `designs/`) are aligned to PHP/MySQL/Tailwind HMS (Hospitality Command). Application shell exists (`public/`, `app/`, `config/`, Composer); DB wiring is next.
 
 ---
 
@@ -26,7 +26,7 @@ Product, architecture, build, standards, library, progress, and UI docs (`ui-tok
 
 ### Phase 1 - Foundation
 
-- [ ] 01 Project Shell & Routing
+- [x] 01 Project Shell & Routing
 - [ ] 02 Database Connection & Core Plumbing
 - [ ] 03 Auth, RBAC, CSRF & Sessions
 - [ ] 04 App Layout & Tailwind Shell
@@ -83,6 +83,7 @@ Product, architecture, build, standards, library, progress, and UI docs (`ui-tok
 - Single hotel currency assumed (e.g. GHS / Mobile Money context) unless Settings later make it configurable.
 - Restaurant Management System remains a separate application; integration is via a narrow charge-posting API, not shared DB writes.
 - Schema and seed already define tables and the seven PRD roles with permission keys.
+- Feature 01: project shell uses Composer PSR-4 (`App\` → `app/`) with `app/bootstrap.php` fallback; front controller at `public/index.php`; routes in `config/routes.php`; health at `/health`.
 
 ---
 

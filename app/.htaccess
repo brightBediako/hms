@@ -1,0 +1,3 @@
+# Deny direct web access to application code when the vhost
+# accidentally points at the project root instead of public/.
+Require all denied

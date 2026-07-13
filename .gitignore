@@ -5,6 +5,20 @@
 .env.local
 .env.*.local
 
+# files and directories to ignore
+context/
+designs/
+docs/
+logs/
+tests/
+tools/
+utils/
+vendor/
+Agents/
+
+
+
+
 # Composer
 /vendor/
 composer.phar
