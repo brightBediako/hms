@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Grand Horizon - Front Desk Operations</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .diagonal-hash {
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(126, 87, 0, 0.05) 10px, rgba(126, 87, 0, 0.05) 20px);
+        }
+        /* Custom scrollbar for high-density sidebars */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #bfc9c4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #707975; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#d8dbd8",
+                        "secondary-fixed-dim": "#ffba38",
+                        "primary-fixed-dim": "#94d3c1",
+                        "on-surface-variant": "#3f4945",
+                        "primary-fixed": "#afefdd",
+                        "surface-container-highest": "#e1e3e0",
+                        "outline-variant": "#bfc9c4",
+                        "inverse-on-surface": "#eff1ef",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#7e5700",
+                        "on-primary-container": "#7ebdac",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed": "#ffdbd1",
+                        "tertiary": "#4e2013",
+                        "on-tertiary-fixed-variant": "#6d382a",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed-variant": "#065043",
+                        "on-surface": "#191c1b",
+                        "tertiary-fixed-dim": "#ffb5a1",
+                        "on-tertiary-container": "#e89f8c",
+                        "surface-container": "#eceeec",
+                        "secondary-container": "#feb300",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#693527",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#00201a",
+                        "on-background": "#191c1b",
+                        "secondary-fixed": "#ffdeac",
+                        "inverse-primary": "#94d3c1",
+                        "surface-container-high": "#e7e9e6",
+                        "on-secondary-container": "#6a4800",
+                        "inverse-surface": "#2e3130",
+                        "on-tertiary-fixed": "#370e04",
+                        "surface-tint": "#29695b",
+                        "primary-container": "#004d40",
+                        "on-secondary-fixed": "#281900",
+                        "surface-bright": "#f8faf7",
+                        "on-secondary-fixed-variant": "#604100",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e1e3e0",
+                        "primary": "#00342b",
+                        "surface-container-low": "#f2f4f1",
+                        "background": "#f8faf7",
+                        "on-error-container": "#93000a",
+                        "outline": "#707975",
+                        "surface": "#f8faf7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "title-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "display-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "title-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "data-mono": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-hidden">
+<!-- SIDEBAR -->
+<aside class="w-[240px] h-screen fixed left-0 top-0 bg-surface-container-high border-r border-outline-variant flex flex-col h-full py-4 overflow-y-auto">
+<div class="px-6 mb-8">
+<h1 class="font-headline-md text-headline-md text-primary">Grand Horizon</h1>
+<p class="text-on-surface-variant font-label-caps opacity-70">Property Management</p>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<!-- Navigation Items Mapping -->
+<a class="flex items-center px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer group" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer group" href="#">
+<span class="material-symbols-outlined mr-3">calendar_month</span>
+<span class="font-body-md text-body-md">Reservations</span>
+</a>
+<!-- ACTIVE: Front Desk -->
+<a class="flex items-center px-3 py-2 bg-secondary-container text-on-secondary-container font-bold cursor-pointer rounded-sm" href="#">
+<span class="material-symbols-outlined mr-3">desk</span>
+<span class="font-body-md text-body-md">Front Desk</span>
+</a>
+<a class="flex items-center px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer group" href="#">
+<span class="material-symbols-outlined mr-3">bed</span>
+<span class="font-body-md text-body-md">Rooms</span>
+</a>
+<a class="flex items-center px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer group" href="#">
+<span class="material-symbols-outlined mr-3">group</span>
+<span class="font-body-md text-body-md">Guests</span>
+</a>
+<a class="flex items-center px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer group" href="#">
+<span class="material-symbols-outlined mr-3">payments</span>
+<span class="font-body-md text-body-md">Billing</span>
+</a>
+<div class="h-px bg-outline-variant my-4 mx-3"></div>
+<a class="flex items-center px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer group" href="#">
+<span class="material-symbols-outlined mr-3">analytics</span>
+<span class="font-body-md text-body-md">Reports</span>
+</a>
+<a class="flex items-center px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer group" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-6 pt-4 border-t border-outline-variant">
+<button class="w-full bg-secondary-container text-on-secondary-container font-bold py-2 rounded-sm text-sm active:scale-95 transition-transform">
+                New Reservation
+            </button>
+</div>
+</aside>
+<!-- MAIN CONTENT AREA -->
+<main class="ml-[240px] pt-[56px] h-screen overflow-hidden flex flex-col">
+<!-- TOP NAV BAR -->
+<header class="h-[56px] fixed top-0 right-0 left-[240px] bg-surface border-b border-outline-variant z-10 flex justify-between items-center px-6">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-1.5 bg-surface-container-low border border-outline-variant focus:outline-none focus:border-primary text-body-md" placeholder="Search Guest, Room, or Reservation ID..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-secondary-container text-on-secondary-container font-bold px-4 py-1.5 rounded-sm text-sm hover:opacity-90 active:scale-95">Check In</button>
+<div class="flex gap-2 text-on-surface-variant border-l border-outline-variant pl-4 ml-2">
+<button class="p-1 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-1 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a hotel manager in a sharp navy blazer, set against a blurred luxury hotel lobby background. The lighting is soft and warm, reflecting a corporate modern and reliable brand identity. High-key professional photography style with crisp details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDlXXPvxtvg2UGlc3Q28L9J_Hltx6GBk5JuSmBpmRc-0gNG3x2osRVsE8yJb4KNQzsZ5xAy951kY-DiW70e92hOjui4TsoDn7DiXC5B9sRTuSA5U6LEmC8ZZBzmjKGcIFyn4kBrUeq6VCoxuzIHgdWkXJQvXAo-k7FHsIcVj7w2uPSgTwwvPpvaYtoAaMtHWvm_Yy6QGbM7Tqd7W09sraozt0vOqzDFDZapLxXocKnisH0iQ2V0KsKBfe137OWQ8W-_B-yqZi64Io"/>
+</div>
+</div>
+</div>
+</header>
+<!-- DASHBOARD GRID CONTENT -->
+<div class="flex-1 p-6 overflow-y-auto bg-background">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary">Front Desk Operations</h2>
+<p class="text-on-surface-variant">Manage arriving guests, room assignments, and folio settlements.</p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 border border-outline text-primary font-bold px-3 py-1.5 rounded-sm hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm">swap_horiz</span>
+<span class="font-label-caps">Room Transfer</span>
+</button>
+<button class="flex items-center gap-2 border border-outline text-primary font-bold px-3 py-1.5 rounded-sm hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm">history</span>
+<span class="font-label-caps">Stay Extension</span>
+</button>
+</div>
+</div>
+<!-- BENTO GRID LAYOUT -->
+<div class="grid grid-cols-12 gap-6 h-full min-h-0">
+<!-- CHECK-IN PANEL -->
+<section class="col-span-12 lg:col-span-6 flex flex-col bg-surface border border-outline-variant overflow-hidden">
+<div class="bg-surface-container-low px-4 py-2 border-b border-outline-variant flex justify-between items-center">
+<h3 class="font-label-caps text-on-surface-variant">Check-In Queue &amp; ID Verification</h3>
+<span class="bg-primary-container text-white text-[10px] px-2 py-0.5 font-bold rounded-full">4 ARRIVALS</span>
+</div>
+<div class="p-4 flex-1 space-y-6">
+<!-- Search/Active Check-in Item -->
+<div class="bg-primary/5 p-4 border-l-4 border-primary">
+<div class="flex justify-between mb-4">
+<div>
+<h4 class="font-title-sm text-primary">Alexander Van der Bloom</h4>
+<p class="text-xs text-on-surface-variant font-data-mono">RES-882910 | Gold Member</p>
+</div>
+<div class="text-right">
+<span class="text-xs font-label-caps text-on-surface-variant">Expected Arrival</span>
+<p class="text-sm font-bold">14:30 PM</p>
+</div>
+</div>
+<!-- ID Scanning Mockup -->
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div class="aspect-[1.6/1] bg-surface border border-dashed border-outline rounded flex flex-col items-center justify-center relative group cursor-pointer hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-3xl text-outline group-hover:text-primary mb-2">add_a_photo</span>
+<span class="text-[10px] font-label-caps text-outline group-hover:text-primary">Scan ID / Passport</span>
+</div>
+<div class="space-y-3">
+<div>
+<label class="font-label-caps text-[10px] text-on-surface-variant">Room Category</label>
+<select class="w-full text-xs py-1 px-2 border border-outline-variant bg-surface">
+<option>Executive Suite - King</option>
+<option>Deluxe Ocean View</option>
+<option>Standard Garden</option>
+</select>
+</div>
+<div>
+<label class="font-label-caps text-[10px] text-on-surface-variant">Assigned Room</label>
+<div class="flex gap-2">
+<input class="w-20 text-xs py-1 px-2 border border-outline-variant bg-surface font-data-mono" type="text" value="402"/>
+<button class="text-[10px] font-label-caps text-primary underline">Auto-Assign</button>
+</div>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-secondary text-on-secondary font-bold py-2 rounded-sm text-sm hover:brightness-110">Confirm Check-In</button>
+<button class="px-4 border border-outline text-primary font-bold py-2 rounded-sm text-sm hover:bg-surface-container-low">Print Card</button>
+</div>
+</div>
+<!-- Mini Table for Arrivals -->
+<div class="overflow-x-auto">
+<table class="w-full text-xs text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="py-2 px-3 font-label-caps text-on-surface-variant">Guest Name</th>
+<th class="py-2 px-3 font-label-caps text-on-surface-variant">Type</th>
+<th class="py-2 px-3 font-label-caps text-on-surface-variant">Room</th>
+<th class="py-2 px-3 font-label-caps text-on-surface-variant text-right">Action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low cursor-pointer">
+<td class="py-2 px-3 font-medium">Sarah Jenkins</td>
+<td class="py-2 px-3"><span class="bg-surface-variant text-[10px] px-1.5 py-0.5 font-bold">STD</span></td>
+<td class="py-2 px-3 font-data-mono">TBD</td>
+<td class="py-2 px-3 text-right text-primary font-bold">Check-in</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low cursor-pointer">
+<td class="py-2 px-3 font-medium">Michael Rossi</td>
+<td class="py-2 px-3"><span class="bg-primary-container text-white text-[10px] px-1.5 py-0.5 font-bold">VIP</span></td>
+<td class="py-2 px-3 font-data-mono">102</td>
+<td class="py-2 px-3 text-right text-primary font-bold">Check-in</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- CHECK-OUT PANEL -->
+<section class="col-span-12 lg:col-span-6 flex flex-col bg-surface border border-outline-variant overflow-hidden">
+<div class="bg-surface-container-low px-4 py-2 border-b border-outline-variant flex justify-between items-center">
+<h3 class="font-label-caps text-on-surface-variant">Check-Out &amp; Folio Summary</h3>
+<span class="bg-error text-white text-[10px] px-2 py-0.5 font-bold rounded-full">2 DUE</span>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<!-- Folio Active View -->
+<div class="border border-outline-variant rounded-sm flex-1 flex flex-col">
+<div class="p-3 border-b border-outline-variant flex justify-between items-center bg-surface-bright">
+<div>
+<h4 class="font-title-sm text-primary">Dr. Elena Thorne</h4>
+<p class="text-[10px] text-on-surface-variant font-data-mono">Room 505 | Checkout Today</p>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-[10px] text-on-surface-variant">Outstanding Balance</p>
+<p class="text-lg font-bold text-error">$1,452.80</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<table class="w-full text-[11px] text-left border-collapse">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="py-1 px-3 font-label-caps text-on-surface-variant border-b border-outline-variant">Date</th>
+<th class="py-1 px-3 font-label-caps text-on-surface-variant border-b border-outline-variant">Description</th>
+<th class="py-1 px-3 font-label-caps text-on-surface-variant border-b border-outline-variant text-right">Amount</th>
+</tr>
+</thead>
+<tbody class="font-data-mono">
+<tr class="border-b border-outline-variant">
+<td class="py-1.5 px-3">20 Oct</td>
+<td class="py-1.5 px-3">Room Charge (Executive)</td>
+<td class="py-1.5 px-3 text-right">$450.00</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-1.5 px-3">20 Oct</td>
+<td class="py-1.5 px-3">Mini-Bar Consumption</td>
+<td class="py-1.5 px-3 text-right">$32.50</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-1.5 px-3">21 Oct</td>
+<td class="py-1.5 px-3">Room Charge (Executive)</td>
+<td class="py-1.5 px-3 text-right">$450.00</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-1.5 px-3">21 Oct</td>
+<td class="py-1.5 px-3">Spa Treatment (Massage)</td>
+<td class="py-1.5 px-3 text-right">$220.00</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-1.5 px-3">22 Oct</td>
+<td class="py-1.5 px-3">Room Charge (Executive)</td>
+<td class="py-1.5 px-3 text-right">$450.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-3 bg-surface-container-low mt-auto border-t border-outline-variant">
+<div class="flex justify-between items-center mb-3">
+<div class="flex gap-2">
+<button class="bg-surface border border-outline px-3 py-1 rounded-sm text-[10px] font-bold hover:bg-surface-variant">Add Charge</button>
+<button class="bg-surface border border-outline px-3 py-1 rounded-sm text-[10px] font-bold hover:bg-surface-variant">Apply Discount</button>
+</div>
+<button class="text-primary font-bold text-[11px] underline">Send Folio via Email</button>
+</div>
+<button class="w-full bg-secondary text-on-secondary font-bold py-2 rounded-sm text-sm active:scale-[0.98] transition-transform">Settle &amp; Check-Out</button>
+</div>
+</div>
+</div>
+</section>
+<!-- STATUS GRID / QUICK ROOM VIEW -->
+<section class="col-span-12 bg-surface border border-outline-variant p-4">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-label-caps text-on-surface-variant">Real-time Room Status</h3>
+<div class="flex gap-4 text-[10px] font-label-caps">
+<span class="flex items-center gap-1"><i class="w-3 h-3 bg-primary-container block"></i> Occupied</span>
+<span class="flex items-center gap-1"><i class="w-3 h-3 bg-surface-variant block"></i> Available</span>
+<span class="flex items-center gap-1"><i class="w-3 h-3 bg-error-container block"></i> Dirty</span>
+<span class="flex items-center gap-1"><i class="w-3 h-3 diagonal-hash block border border-outline-variant"></i> Reserved</span>
+</div>
+</div>
+<div class="grid grid-cols-5 md:grid-cols-10 lg:grid-cols-15 gap-1">
+<!-- Room Cells: Demonstration of high density room grid -->
+<!-- Row 1 -->
+<div class="h-8 bg-primary-container text-white flex items-center justify-center font-data-mono text-[10px] cursor-pointer hover:brightness-125">101</div>
+<div class="h-8 bg-surface-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer hover:bg-surface-dim">102</div>
+<div class="h-8 diagonal-hash border border-outline-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">103</div>
+<div class="h-8 bg-primary-container text-white flex items-center justify-center font-data-mono text-[10px] cursor-pointer">104</div>
+<div class="h-8 bg-error-container text-on-error-container flex items-center justify-center font-data-mono text-[10px] cursor-pointer">105</div>
+<div class="h-8 bg-primary-container text-white flex items-center justify-center font-data-mono text-[10px] cursor-pointer">106</div>
+<div class="h-8 bg-surface-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">107</div>
+<div class="h-8 bg-surface-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">108</div>
+<div class="h-8 diagonal-hash border border-outline-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">109</div>
+<div class="h-8 bg-primary-container text-white flex items-center justify-center font-data-mono text-[10px] cursor-pointer">110</div>
+<div class="h-8 bg-error-container text-on-error-container flex items-center justify-center font-data-mono text-[10px] cursor-pointer">111</div>
+<div class="h-8 bg-surface-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">112</div>
+<div class="h-8 bg-primary-container text-white flex items-center justify-center font-data-mono text-[10px] cursor-pointer">113</div>
+<div class="h-8 diagonal-hash border border-outline-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">114</div>
+<div class="h-8 bg-surface-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">115</div>
+<!-- Row 2 -->
+<div class="h-8 bg-surface-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">201</div>
+<div class="h-8 bg-primary-container text-white flex items-center justify-center font-data-mono text-[10px] cursor-pointer">202</div>
+<div class="h-8 bg-primary-container text-white flex items-center justify-center font-data-mono text-[10px] cursor-pointer">203</div>
+<div class="h-8 bg-error-container text-on-error-container flex items-center justify-center font-data-mono text-[10px] cursor-pointer">204</div>
+<div class="h-8 bg-surface-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">205</div>
+<div class="h-8 diagonal-hash border border-outline-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">206</div>
+<div class="h-8 bg-primary-container text-white flex items-center justify-center font-data-mono text-[10px] cursor-pointer">207</div>
+<div class="h-8 bg-primary-container text-white flex items-center justify-center font-data-mono text-[10px] cursor-pointer">208</div>
+<div class="h-8 bg-surface-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">209</div>
+<div class="h-8 bg-surface-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">210</div>
+<div class="h-8 bg-error-container text-on-error-container flex items-center justify-center font-data-mono text-[10px] cursor-pointer">211</div>
+<div class="h-8 diagonal-hash border border-outline-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">212</div>
+<div class="h-8 bg-primary-container text-white flex items-center justify-center font-data-mono text-[10px] cursor-pointer">213</div>
+<div class="h-8 bg-surface-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">214</div>
+<div class="h-8 bg-surface-variant text-on-surface flex items-center justify-center font-data-mono text-[10px] cursor-pointer">215</div>
+</div>
+</section>
+</div>
+</div>
+<!-- FOOTER STATUS BAR -->
+<footer class="h-8 bg-surface-container-high border-t border-outline-variant flex items-center justify-between px-6 text-[10px] font-label-caps text-on-surface-variant">
+<div class="flex gap-4">
+<span>FRONT DESK: <span class="text-primary">ONLINE</span></span>
+<span>SYSTEM VERSION: <span class="text-primary">v4.2.1-PRO</span></span>
+<span>SYNC: <span class="text-secondary font-bold">LATEST 2 SEC AGO</span></span>
+</div>
+<div class="flex gap-4 items-center">
+<span>USER: <span class="font-bold">ADMIN_J_DOE</span></span>
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-secondary-container"></span> SHIFT ACTIVE</span>
+</div>
+</footer>
+</main>
+<!-- MICRO-INTERACTIONS -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Click handler for Check-in confirmations
+            const checkInBtn = document.querySelector('button:contains("Confirm Check-In")');
+            // Mock scale effect on buttons
+            document.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('mousedown', () => btn.classList.add('scale-95'));
+                btn.addEventListener('mouseup', () => btn.classList.remove('scale-95'));
+                btn.addEventListener('mouseleave', () => btn.classList.remove('scale-95'));
+            });
+
+            // Tab logic simulation
+            const navItems = document.querySelectorAll('nav a');
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    navItems.forEach(i => {
+                        i.classList.remove('bg-secondary-container', 'text-on-secondary-container', 'font-bold', 'rounded-sm');
+                        i.classList.add('text-on-surface-variant', 'hover:bg-surface-container-highest');
+                    });
+                    item.classList.add('bg-secondary-container', 'text-on-secondary-container', 'font-bold', 'rounded-sm');
+                    item.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-highest');
+                });
+            });
+        });
+    </script>
+</body></html>
