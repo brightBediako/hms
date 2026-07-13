@@ -17,7 +17,7 @@ final class Session
 
         $lifetimeMinutes = (int) Config::app('session_lifetime', 120);
         $lifetimeSeconds = max(1, $lifetimeMinutes) * 60;
-        $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        $secure = self::cookieShouldBeSecure();
 
         session_name('hms_session');
         session_set_cookie_params([
@@ -31,6 +31,7 @@ final class Session
         ini_set('session.use_strict_mode', '1');
         ini_set('session.cookie_httponly', '1');
         ini_set('session.use_only_cookies', '1');
+        ini_set('session.cookie_secure', $secure ? '1' : '0');
         ini_set('session.gc_maxlifetime', (string) $lifetimeSeconds);
 
         session_start();
@@ -101,5 +102,29 @@ final class Session
 
         session_destroy();
         self::$started = false;
+    }
+
+    private static function cookieShouldBeSecure(): bool
+    {
+        if ((bool) Config::app('session_secure', false)) {
+            return true;
+        }
+
+        $appUrl = strtolower((string) Config::app('url', ''));
+        if (str_starts_with($appUrl, 'https://')) {
+            return true;
+        }
+
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            return true;
+        }
+
+        if ((bool) Config::app('trust_proxy', false)
+            && strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https'
+        ) {
+            return true;
+        }
+
+        return false;
     }
 }

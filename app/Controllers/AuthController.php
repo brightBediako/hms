@@ -49,6 +49,7 @@ final class AuthController
     public function logout(Request $request): void
     {
         Auth::logout();
+        Session::start();
         Session::flash('success', 'You have been signed out.');
         redirect('/login');
     }

@@ -112,16 +112,3 @@ INSERT INTO settings (`key`, `value`) VALUES
   ('check_in_time',      '14:00'),
   ('check_out_time',     '12:00');
 
--- ----------------------------------------
--- First System Administrator account
--- Demo login (local only): admin@example.com / Admin@123
--- Replace this hash before any production deploy.
--- ----------------------------------------
-INSERT INTO staff (role_id, full_name, email, password_hash, status)
-VALUES (
-  (SELECT id FROM roles WHERE name = 'System Administrator'),
-  'System Administrator',
-  'admin@example.com',
-  '$2y$10$MS4cQQZvdqzYJDZtPt91z.DppfhMJa/yUlSeLRyPnzjT95imQcuge',
-  'active'
-);

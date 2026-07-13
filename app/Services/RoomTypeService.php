@@ -10,14 +10,16 @@ final class RoomTypeService
     public const AMENITY_OPTIONS = [
         'High Speed WiFi',
         'Mini Bar',
-        'Climate Control',
+        'Mini Fridge',
+        'Air Conditioner',
         'Smart TV',
         'Balcony',
         'Hot Tub',
         'Work Desk',
-        'Safe',
         'Coffee Maker',
         'Bathtub',
+        'Breakfast',
+        'Wardrobe',
     ];
 
     /**

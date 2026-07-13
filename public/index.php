@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Auth;
 use App\Core\Config;
 use App\Core\Env;
+use App\Core\Logger;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Router;
@@ -23,6 +24,8 @@ Env::load(HMS_ROOT);
 
 date_default_timezone_set((string) Config::app('timezone', 'Africa/Accra'));
 
+Response::sendSecurityHeaders();
+
 Session::start();
 Auth::enforceIdleTimeout();
 
@@ -33,7 +36,9 @@ try {
     $request = Request::capture();
     $router->dispatch($request);
 } catch (Throwable $e) {
-    $debug = Config::app('debug', true);
+    Logger::error('Unhandled application exception', $e);
+
+    $debug = (bool) Config::app('debug', false);
 
     if ($debug) {
         Response::html(
@@ -46,7 +51,7 @@ try {
     } else {
         Response::html(
             '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Error</title></head><body>'
-            . '<h1>Something went wrong</h1></body></html>',
+            . '<h1>Something went wrong</h1><p>Please try again later.</p></body></html>',
             500
         );
     }

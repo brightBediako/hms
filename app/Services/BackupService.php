@@ -220,8 +220,13 @@ final class BackupService
         ];
 
         if ($pass !== '') {
-            // Avoid shell history exposure where possible; still needed for mysqldump.
-            $cmd[] = '--password=' . $pass;
+            $defaultsFile = $this->writeMysqlDefaultsFile($pass);
+            if ($defaultsFile === null) {
+                return ['ok' => false, 'error' => 'Could not prepare secure MySQL credentials file.'];
+            }
+            array_splice($cmd, 1, 0, ['--defaults-extra-file=' . $defaultsFile]);
+        } else {
+            $defaultsFile = null;
         }
 
         $descriptor = [
@@ -231,6 +236,10 @@ final class BackupService
         ];
         $process = proc_open($cmd, $descriptor, $pipes, null, null, ['bypass_shell' => true]);
         if (!is_resource($process)) {
+            if ($defaultsFile !== null) {
+                @unlink($defaultsFile);
+            }
+
             return ['ok' => false, 'error' => 'Could not start mysqldump.'];
         }
 
@@ -240,6 +249,10 @@ final class BackupService
         fclose($pipes[1]);
         fclose($pipes[2]);
         $code = proc_close($process);
+
+        if ($defaultsFile !== null) {
+            @unlink($defaultsFile);
+        }
 
         if ($code !== 0 || !is_file($absolutePath) || filesize($absolutePath) === 0) {
             if (is_file($absolutePath)) {
@@ -254,6 +267,25 @@ final class BackupService
         }
 
         return ['ok' => true];
+    }
+
+    private function writeMysqlDefaultsFile(string $password): ?string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'hmsmy');
+        if ($path === false) {
+            return null;
+        }
+
+        $escaped = str_replace(['\\', '"'], ['\\\\', '\\"'], $password);
+        if (@file_put_contents($path, "[client]\npassword=\"{$escaped}\"\n") === false) {
+            @unlink($path);
+
+            return null;
+        }
+
+        @chmod($path, 0600);
+
+        return $path;
     }
 
     private function resolveMysqldump(): ?string

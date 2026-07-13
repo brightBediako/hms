@@ -1,4 +1,4 @@
-# Deny direct HTTP access to uploaded files (served via authenticated controllers).
+# CLI / maintenance scripts must never be web-accessible.
 <IfModule mod_authz_core.c>
     Require all denied
 </IfModule>

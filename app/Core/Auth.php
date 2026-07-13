@@ -42,9 +42,7 @@ final class Auth
 
     public static function logout(): void
     {
-        Session::forget(self::STAFF_ID_KEY);
-        Session::forget(self::PERMISSIONS_KEY);
-        Session::regenerate(true);
+        Session::destroy();
     }
 
     public static function check(): bool

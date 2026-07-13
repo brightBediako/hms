@@ -44,7 +44,8 @@ final class Database
                 ]
             );
         } catch (PDOException $e) {
-            throw new RuntimeException('Database connection failed: ' . $e->getMessage(), (int) $e->getCode(), $e);
+            Logger::error('Database connection failed', $e);
+            throw new RuntimeException('Database connection failed.', 0, $e);
         }
 
         return self::$pdo;

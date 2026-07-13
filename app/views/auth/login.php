@@ -38,7 +38,5 @@
         <button class="btn-primary w-full" type="submit">Sign in</button>
     </form>
 
-    <p class="mt-5 text-body-sm text-on-surface-variant">
-        Staff accounts only. Demo: <span class="data-mono">admin@example.com</span> / <span class="data-mono">Admin@123</span>
-    </p>
+    <p class="mt-5 text-body-sm text-on-surface-variant">Staff accounts only.</p>
 </div>
