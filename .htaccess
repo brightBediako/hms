@@ -1,19 +1,15 @@
-# If the site document root is mistakenly set to the project root,
-# block sensitive paths. Prefer pointing the vhost at /public instead.
+# Project root is not the app document root.
+# Do not externally redirect with a relative "public/" target on Windows —
+# Apache turns that into http://localhost/C:/xampp/... (403).
+# DirectoryIndex hits index.php, which redirects to /hms/public/.
 
-<IfModule mod_authz_core.c>
-    Require all denied
-</IfModule>
-<IfModule !mod_authz_core.c>
-    Deny from all
-</IfModule>
+DirectoryIndex index.php
+Options -Indexes
 
-# Allow only the convenience redirect script.
-<Files "index.php">
-    <IfModule mod_authz_core.c>
-        Require all granted
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Allow from all
-    </IfModule>
-</Files>
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block sensitive / non-public paths
+    RewriteRule ^\.env - [F,L]
+    RewriteRule ^(app|config|db|storage|scripts|vendor|context|docs|tests|node_modules)/ - [F,L]
+</IfModule>

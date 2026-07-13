@@ -54,11 +54,60 @@ final class Request
             return '/';
         }
 
-        $scriptName = (string) ($this->server['SCRIPT_NAME'] ?? '');
-        $base = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+        $path = str_replace('\\', '/', $path);
+        $scriptName = str_replace('\\', '/', (string) ($this->server['SCRIPT_NAME'] ?? ''));
+        $scriptDir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
 
-        if ($base !== '' && $base !== '/' && str_starts_with($path, $base)) {
-            $path = substr($path, strlen($base)) ?: '/';
+        // Prefer longest matching install base first.
+        // e.g. SCRIPT_NAME=/hms/public/index.php with REQUEST_URI=/hms
+        // must strip /hms (project root rewrite), not leave /hms as a route.
+        $candidates = [];
+        if ($scriptDir !== '' && $scriptDir !== '/' && $scriptDir !== '.') {
+            $candidates[] = $scriptDir;
+            if (str_ends_with($scriptDir, '/public')) {
+                $projectBase = substr($scriptDir, 0, -strlen('/public'));
+                if ($projectBase !== '' && $projectBase !== '/') {
+                    $candidates[] = $projectBase;
+                }
+            }
+        }
+
+        try {
+            $appUrl = (string) (Config::app('url') ?? '');
+        } catch (\Throwable) {
+            $appUrl = '';
+        }
+
+        if ($appUrl !== '') {
+            $appPath = parse_url($appUrl, PHP_URL_PATH);
+            if (is_string($appPath) && $appPath !== '' && $appPath !== '/') {
+                $appPath = rtrim(str_replace('\\', '/', $appPath), '/');
+                $candidates[] = $appPath;
+                if (str_ends_with($appPath, '/public')) {
+                    $projectBase = substr($appPath, 0, -strlen('/public'));
+                    if ($projectBase !== '' && $projectBase !== '/') {
+                        $candidates[] = $projectBase;
+                    }
+                }
+            }
+        }
+
+        $candidates = array_values(array_unique(array_filter(
+            $candidates,
+            static fn (string $base): bool => $base !== '' && $base !== '/'
+        )));
+        usort($candidates, static fn (string $a, string $b): int => strlen($b) <=> strlen($a));
+
+        foreach ($candidates as $base) {
+            if ($path === $base || str_starts_with($path, $base . '/')) {
+                $path = substr($path, strlen($base)) ?: '/';
+                break;
+            }
+        }
+
+        // Direct hits on …/public/index.php should resolve as "/"
+        if ($path === '/index.php' || str_ends_with($path, '/index.php')) {
+            $path = substr($path, 0, -strlen('/index.php')) ?: '/';
         }
 
         $path = '/' . trim($path, '/');
