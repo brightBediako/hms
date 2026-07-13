@@ -1,23 +1,13 @@
 # HMS — Hotel Management System
 
+# Local agent / planning docs (keep on disk, do not push)
+/AGENTS.md
+/context/
+
 # Secrets (keep .env.example committed)
 .env
 .env.local
 .env.*.local
-
-# files and directories to ignore
-context/
-designs/
-docs/
-logs/
-tests/
-tools/
-utils/
-vendor/
-Agents/
-
-
-
 
 # Composer
 /vendor/
@@ -61,9 +51,8 @@ Desktop.ini
 
 # Cursor / local agent tooling
 .Cursor/
-.agents/skills/
+.agents/
 skills-lock.json
 
 # Scratch notes (not project docs)
 criteria.md
-)
