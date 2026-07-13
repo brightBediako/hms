@@ -4,21 +4,51 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Config;
+use App\Core\Database;
 use App\Core\Request;
 use App\Core\Response;
+use Throwable;
 
 final class HealthController
 {
     public function ping(Request $request): void
     {
+        $database = [
+            'status' => 'disconnected',
+            'database' => Config::database('database'),
+        ];
+
+        try {
+            $pdo = Database::connection();
+            $stmt = $pdo->prepare('SELECT COUNT(*) AS role_count FROM roles');
+            $stmt->execute();
+            $row = $stmt->fetch();
+
+            $database = [
+                'status' => 'ok',
+                'database' => Config::database('database'),
+                'roles' => (int) ($row['role_count'] ?? 0),
+            ];
+        } catch (Throwable $e) {
+            $database['status'] = 'error';
+            if (Config::app('debug', false)) {
+                $database['error'] = $e->getMessage();
+            }
+        }
+
+        $overall = $database['status'] === 'ok' ? 'ok' : 'degraded';
+
         Response::json([
-            'status' => 'ok',
-            'app' => 'HMS',
-            'message' => 'Project shell and routing are online',
+            'status' => $overall,
+            'app' => Config::app('name', 'HMS'),
+            'env' => Config::app('env', 'local'),
+            'currency' => Config::app('currency', 'GHS'),
             'path' => $request->path(),
             'method' => $request->method(),
             'time' => gmdate('c'),
-        ]);
+            'database' => $database,
+        ], $overall === 'ok' ? 200 : 503);
     }
 
     public function home(Request $request): void
@@ -36,12 +66,11 @@ final class HealthController
             . 'a{color:#004d40;}'
             . 'code{font-family:ui-monospace,monospace;font-size:.875rem;}'
             . '</style></head><body><main>'
-            . '<h1>Hotel Management System</h1>'
-            . '<p>Front controller and router are running.</p>'
-            . '<p>Request path: <code>' . htmlspecialchars($request->path(), ENT_QUOTES, 'UTF-8') . '</code></p>'
+            . '<h1>' . e((string) Config::app('name', 'Hotel Management System')) . '</h1>'
+            . '<p>Front controller, routing, and database plumbing are in place.</p>'
+            . '<p>Request path: <code>' . e($request->path()) . '</code></p>'
             . '<p>Health check: <a href="health"><code>/health</code></a></p>'
             . '</main></body></html>'
         );
     }
 }
-

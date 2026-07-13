@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Core\Auth;
+use App\Core\Config;
+use App\Core\Env;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Router;
+use App\Core\Session;
 
 define('HMS_ROOT', dirname(__DIR__));
 
@@ -15,6 +19,13 @@ if (is_file($autoload)) {
     require HMS_ROOT . '/app/bootstrap.php';
 }
 
+Env::load(HMS_ROOT);
+
+date_default_timezone_set((string) Config::app('timezone', 'Africa/Accra'));
+
+Session::start();
+Auth::enforceIdleTimeout();
+
 $router = new Router();
 require HMS_ROOT . '/config/routes.php';
 
@@ -22,21 +33,7 @@ try {
     $request = Request::capture();
     $router->dispatch($request);
 } catch (Throwable $e) {
-    $debug = true;
-    $envFile = HMS_ROOT . '/.env';
-    if (is_file($envFile)) {
-        foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
-            $line = trim($line);
-            if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
-                continue;
-            }
-            [$key, $value] = array_map('trim', explode('=', $line, 2));
-            $value = trim($value, "\"'");
-            if ($key === 'APP_DEBUG') {
-                $debug = filter_var($value, FILTER_VALIDATE_BOOLEAN);
-            }
-        }
-    }
+    $debug = Config::app('debug', true);
 
     if ($debug) {
         Response::html(

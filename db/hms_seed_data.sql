@@ -114,15 +114,14 @@ INSERT INTO settings (`key`, `value`) VALUES
 
 -- ----------------------------------------
 -- First System Administrator account
--- NOTE: replace the password_hash value below with a real bcrypt hash
--- generated via PHP's password_hash('yourpassword', PASSWORD_DEFAULT)
--- before running this in production. Do not ship this placeholder hash.
+-- Demo login (local only): admin@example.com / Admin@123
+-- Replace this hash before any production deploy.
 -- ----------------------------------------
 INSERT INTO staff (role_id, full_name, email, password_hash, status)
 VALUES (
   (SELECT id FROM roles WHERE name = 'System Administrator'),
   'System Administrator',
   'admin@example.com',
-  '$2y$10$REPLACE_WITH_REAL_BCRYPT_HASH',
+  '$2y$10$MS4cQQZvdqzYJDZtPt91z.DppfhMJa/yUlSeLRyPnzjT95imQcuge',
   'active'
 );

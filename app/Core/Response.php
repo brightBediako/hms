@@ -23,8 +23,14 @@ final class Response
 
     public static function redirect(string $url, int $status = 302): void
     {
+        // 303 after POST so clients switch to GET on the next URL
+        if ($status === 302 && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+            $status = 303;
+        }
+
         http_response_code($status);
         header('Location: ' . $url);
+        exit;
     }
 
     public static function text(string $content, int $status = 200): void

@@ -19,3 +19,6 @@ spl_autoload_register(static function (string $class): void {
         require $path;
     }
 });
+
+require_once __DIR__ . '/helpers/format.php';
+require_once __DIR__ . '/helpers/permissions.php';
