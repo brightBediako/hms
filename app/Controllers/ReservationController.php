@@ -102,7 +102,6 @@ final class ReservationController
         $this->renderForm(null, [
             'check_in_date' => $checkIn,
             'check_out_date' => $checkOut,
-            'check_in_time' => date('H:i'),
             'check_out_time' => ReservationService::STANDARD_CHECK_OUT_TIME,
             'guest_mode' => 'new',
             'guest_id' => $request->input('guest_id'),
@@ -331,6 +330,7 @@ final class ReservationController
             'canCollectPayment' => !$reservation && Auth::can(\Permission::PAYMENTS_RECORD) && Auth::can(\Permission::BILLING_CREATE),
             'paymentService' => $this->payments,
             'taxRate' => $this->billing->taxRate(),
+            'taxLinesLabel' => $this->billing->taxLinesLabel(),
             'currency' => (new \App\Services\SettingsService())->currency(),
         ], 'app');
     }
@@ -349,7 +349,6 @@ final class ReservationController
             'room_id' => 'required|int',
             'check_in_date' => 'required|date',
             'check_out_date' => 'required|date',
-            'check_in_time' => 'required',
             'source' => 'required',
             'adults' => 'required|int',
             'children' => 'nullable|int',
@@ -364,12 +363,6 @@ final class ReservationController
         $data = $validator->validate($post, $rules);
         if ($data === null) {
             Session::flash('errors', $validator->firstErrors());
-            Session::flash('old', $post);
-            return null;
-        }
-
-        if ($this->service->normalizeTime((string) $data['check_in_time']) === null) {
-            Session::flash('errors', ['check_in_time' => 'Enter a valid check-in time.']);
             Session::flash('old', $post);
             return null;
         }
@@ -390,7 +383,6 @@ final class ReservationController
             'room_id' => (int) $data['room_id'],
             'check_in_date' => (string) $data['check_in_date'],
             'check_out_date' => (string) $data['check_out_date'],
-            'check_in_time' => (string) $data['check_in_time'],
             'check_out_time' => ReservationService::STANDARD_CHECK_OUT_TIME,
             'source' => (string) $data['source'],
             'adults' => (int) $data['adults'],

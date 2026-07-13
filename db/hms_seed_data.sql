@@ -108,7 +108,9 @@ INSERT INTO expense_categories (name) VALUES
 INSERT INTO settings (`key`, `value`) VALUES
   ('hotel_name',        'My Hotel'),
   ('currency',           'GHS'),
-  ('default_tax_rate',   '0.00'),
-  ('check_in_time',      '14:00'),
+  ('tax_getf_rate',      '0.0250'),
+  ('tax_nhil_rate',      '0.0250'),
+  ('tax_vat_rate',       '0.1500'),
+  ('default_tax_rate',   '0.2000'),
   ('check_out_time',     '12:00');
 

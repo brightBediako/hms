@@ -11,6 +11,7 @@
 /** @var bool $canCollectPayment */
 /** @var \App\Services\PaymentService|null $paymentService */
 /** @var float|null $taxRate */
+/** @var string|null $taxLinesLabel */
 /** @var string|null $currency */
 
 $isEdit = $reservation !== null;
@@ -170,11 +171,15 @@ $checkoutTime = \App\Services\ReservationService::STANDARD_CHECK_OUT_TIME;
                        value="<?= e($value('check_in_date')) ?>">
             </div>
             <div>
-                <label class="label-caps mb-2 block text-outline" for="check_in_time">Check-in time</label>
-                <input id="check_in_time" name="check_in_time" type="time" class="input-field data-mono" required
-                       value="<?= e($value('check_in_time')) ?>">
-                <?php if (!empty($errors['check_in_time'])): ?>
-                    <p class="mt-1 text-body-sm text-error"><?= e($errors['check_in_time']) ?></p>
+                <label class="label-caps mb-2 block text-outline" for="check_in_time_display">Check-in time</label>
+                <?php if ($reservation): ?>
+                    <input id="check_in_time_display" type="time" class="input-field data-mono bg-surface-container-low"
+                           value="<?= e($value('check_in_time')) ?>" readonly tabindex="-1" aria-readonly="true">
+                    <p class="mt-1 text-[11px] text-on-surface-variant">Recorded when this reservation was created.</p>
+                <?php else: ?>
+                    <input id="check_in_time_display" type="text" class="input-field bg-surface-container-low"
+                           value="Set when you save" readonly tabindex="-1" aria-readonly="true">
+                    <p class="mt-1 text-[11px] text-on-surface-variant">Uses the time this reservation is created.</p>
                 <?php endif; ?>
             </div>
             <div>
@@ -277,7 +282,7 @@ $checkoutTime = \App\Services\ReservationService::STANDARD_CHECK_OUT_TIME;
                     <input type="checkbox" name="payment_include_tax" value="1" id="payment_include_tax"
                            class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary"
                            <?= $value('payment_include_tax', '1') === '1' ? 'checked' : '' ?>>
-                    Include tax in estimate (<?= e(number_format(((float) ($taxRate ?? 0)) * 100, 2)) ?>%)
+                    Include tax in estimate (<?= e((string) ($taxLinesLabel ?? number_format(((float) ($taxRate ?? 0)) * 100, 2) . '%')) ?>)
                 </label>
 
                 <div class="flex flex-wrap gap-2">

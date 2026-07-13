@@ -114,7 +114,7 @@ final class Auth
             Response::html(
                 '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Forbidden</title></head>'
                 . '<body><h1>403</h1><p>You do not have permission to perform this action.</p>'
-                . '<p><a href="' . e(url('/')) . '">Back</a></p></body></html>',
+                . '<p><a href="' . e(url(self::homePath())) . '">Go to home</a></p></body></html>',
                 403
             );
             exit;
@@ -124,9 +124,40 @@ final class Auth
     public static function requireGuest(): void
     {
         if (self::check()) {
-            Response::redirect(url('/dashboard'));
+            Response::redirect(url(self::homePath()));
             exit;
         }
+    }
+
+    /**
+     * First landing page the signed-in staff member is allowed to open.
+     * Housekeeping/Maintenance roles do not get dashboard.view.
+     */
+    public static function homePath(): string
+    {
+        $candidates = [
+            'dashboard.view' => '/dashboard',
+            'frontdesk.checkin' => '/frontdesk',
+            'housekeeping.view' => '/housekeeping',
+            'maintenance.view' => '/maintenance',
+            'reservations.view' => '/reservations',
+            'rooms.view' => '/rooms',
+            'guests.view' => '/guests',
+            'billing.view' => '/billing',
+            'payments.record' => '/payments',
+            'expenses.view' => '/expenses',
+            'reports.view' => '/reports',
+            'staff.manage' => '/staff',
+            'settings.manage' => '/settings',
+        ];
+
+        foreach ($candidates as $permission => $path) {
+            if (self::can($permission)) {
+                return $path;
+            }
+        }
+
+        return '/login';
     }
 
     public static function enforceIdleTimeout(): void

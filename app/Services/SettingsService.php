@@ -13,10 +13,17 @@ final class SettingsService
     public const KEYS = [
         'hotel_name',
         'currency',
+        'tax_getf_rate',
+        'tax_nhil_rate',
+        'tax_vat_rate',
         'default_tax_rate',
-        'check_in_time',
         'check_out_time',
     ];
+
+    /** Default fractions when a setting is missing. */
+    public const DEFAULT_TAX_GETF = 0.025;
+    public const DEFAULT_TAX_NHIL = 0.025;
+    public const DEFAULT_TAX_VAT = 0.15;
 
     /** @var array<string, string>|null */
     private static ?array $cache = null;
@@ -79,21 +86,56 @@ final class SettingsService
     }
 
     /**
-     * Tax rate as a fraction (e.g. 0.125 for 12.5%).
+     * Named tax rates as fractions of the room subtotal.
+     *
+     * @return list<array{key: string, label: string, rate: float}>
+     */
+    public function taxLines(): array
+    {
+        return [
+            [
+                'key' => 'getf',
+                'label' => 'GETF',
+                'rate' => $this->taxFraction('tax_getf_rate', self::DEFAULT_TAX_GETF),
+            ],
+            [
+                'key' => 'nhil',
+                'label' => 'NHIL',
+                'rate' => $this->taxFraction('tax_nhil_rate', self::DEFAULT_TAX_NHIL),
+            ],
+            [
+                'key' => 'vat',
+                'label' => 'VAT',
+                'rate' => $this->taxFraction('tax_vat_rate', self::DEFAULT_TAX_VAT),
+            ],
+        ];
+    }
+
+    /**
+     * Combined tax rate as a fraction (sum of GETF + NHIL + VAT).
      */
     public function taxRate(): float
     {
-        $raw = $this->get('default_tax_rate');
-        if ($raw !== null && is_numeric($raw)) {
-            return max(0.0, (float) $raw);
+        $total = 0.0;
+        foreach ($this->taxLines() as $line) {
+            $total += $line['rate'];
         }
 
-        return max(0.0, (float) Config::app('tax_rate', 0.125));
+        return round($total, 4);
     }
 
-    public function checkInTime(): string
+    /** Short label e.g. "GETF 2.50% · NHIL 2.50% · VAT 15.00%" */
+    public function taxLinesLabel(): string
     {
-        return $this->get('check_in_time', '14:00') ?? '14:00';
+        $parts = [];
+        foreach ($this->taxLines() as $line) {
+            if ($line['rate'] <= 0) {
+                continue;
+            }
+            $parts[] = sprintf('%s %.2f%%', $line['label'], $line['rate'] * 100);
+        }
+
+        return $parts === [] ? 'None' : implode(' · ', $parts);
     }
 
     public function checkOutTime(): string
@@ -121,40 +163,29 @@ final class SettingsService
             $errors['currency'] = 'Currency must be a 3-letter code (e.g. GHS).';
         }
 
-        $taxPercentRaw = trim((string) ($input['tax_rate_percent'] ?? ''));
-        if ($taxPercentRaw === '' || !is_numeric($taxPercentRaw)) {
-            $errors['tax_rate_percent'] = 'Enter a valid tax percentage.';
-            $taxFraction = null;
-        } else {
-            $taxPercent = (float) $taxPercentRaw;
-            if ($taxPercent < 0 || $taxPercent > 100) {
-                $errors['tax_rate_percent'] = 'Tax rate must be between 0 and 100.';
-                $taxFraction = null;
-            } else {
-                $taxFraction = round($taxPercent / 100, 4);
-            }
-        }
-
-        $checkIn = trim((string) ($input['check_in_time'] ?? ''));
-        if (!$this->isValidTime($checkIn)) {
-            $errors['check_in_time'] = 'Use HH:MM format (e.g. 14:00).';
-        }
+        $getf = $this->parsePercentInput((string) ($input['tax_getf_percent'] ?? ''), 'tax_getf_percent', $errors);
+        $nhil = $this->parsePercentInput((string) ($input['tax_nhil_percent'] ?? ''), 'tax_nhil_percent', $errors);
+        $vat = $this->parsePercentInput((string) ($input['tax_vat_percent'] ?? ''), 'tax_vat_percent', $errors);
 
         $checkOut = trim((string) ($input['check_out_time'] ?? ''));
         if (!$this->isValidTime($checkOut)) {
-            $errors['check_out_time'] = 'Use HH:MM format (e.g. 11:00).';
+            $errors['check_out_time'] = 'Use HH:MM format (e.g. 12:00).';
         }
 
         if ($errors !== []) {
             return ['ok' => false, 'error' => 'Please fix the highlighted fields.', 'errors' => $errors];
         }
 
+        $combined = round((float) $getf + (float) $nhil + (float) $vat, 4);
+
         $before = $this->settings->all();
         $after = [
             'hotel_name' => $hotelName,
             'currency' => $currency,
-            'default_tax_rate' => number_format((float) $taxFraction, 4, '.', ''),
-            'check_in_time' => $checkIn,
+            'tax_getf_rate' => number_format((float) $getf, 4, '.', ''),
+            'tax_nhil_rate' => number_format((float) $nhil, 4, '.', ''),
+            'tax_vat_rate' => number_format((float) $vat, 4, '.', ''),
+            'default_tax_rate' => number_format($combined, 4, '.', ''),
             'check_out_time' => $checkOut,
         ];
 
@@ -185,19 +216,71 @@ final class SettingsService
     }
 
     /**
-     * Values prepared for the settings form (tax as percent).
+     * Values prepared for the settings form (taxes as percent).
      *
      * @return array<string, string>
      */
     public function formDefaults(): array
     {
+        $lines = $this->taxLines();
+        $byKey = [];
+        foreach ($lines as $line) {
+            $byKey[$line['key']] = $line['rate'];
+        }
+
         return [
             'hotel_name' => $this->hotelName(),
             'currency' => $this->currency(),
-            'tax_rate_percent' => number_format($this->taxRate() * 100, 2, '.', ''),
-            'check_in_time' => $this->checkInTime(),
+            'tax_getf_percent' => number_format(($byKey['getf'] ?? 0) * 100, 2, '.', ''),
+            'tax_nhil_percent' => number_format(($byKey['nhil'] ?? 0) * 100, 2, '.', ''),
+            'tax_vat_percent' => number_format(($byKey['vat'] ?? 0) * 100, 2, '.', ''),
+            'tax_combined_percent' => number_format($this->taxRate() * 100, 2, '.', ''),
+            'tax_lines_label' => $this->taxLinesLabel(),
             'check_out_time' => $this->checkOutTime(),
         ];
+    }
+
+    private function taxFraction(string $key, float $default): float
+    {
+        $raw = $this->get($key);
+        if ($raw !== null && is_numeric($raw)) {
+            return max(0.0, (float) $raw);
+        }
+
+        // Legacy single-rate installs: split only if new keys missing.
+        if ($key === 'tax_vat_rate') {
+            $legacy = $this->get('default_tax_rate');
+            if ($legacy !== null && is_numeric($legacy) && (float) $legacy > 0
+                && $this->get('tax_getf_rate') === null
+                && $this->get('tax_nhil_rate') === null
+            ) {
+                return max(0.0, (float) $legacy);
+            }
+        }
+
+        return max(0.0, $default);
+    }
+
+    /**
+     * @param array<string, string> $errors
+     */
+    private function parsePercentInput(string $raw, string $field, array &$errors): ?float
+    {
+        $raw = trim($raw);
+        if ($raw === '' || !is_numeric($raw)) {
+            $errors[$field] = 'Enter a valid percentage.';
+
+            return null;
+        }
+
+        $percent = (float) $raw;
+        if ($percent < 0 || $percent > 100) {
+            $errors[$field] = 'Must be between 0 and 100.';
+
+            return null;
+        }
+
+        return round($percent / 100, 4);
     }
 
     private function isValidTime(string $value): bool

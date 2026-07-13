@@ -22,14 +22,12 @@
                 <p class="data-mono text-body-sm"><?= e($preview['currency']) ?></p>
             </div>
             <div>
-                <p class="label-caps text-outline">Default tax</p>
-                <p class="data-mono text-body-sm"><?= e($preview['tax_rate_percent']) ?>%</p>
+                <p class="label-caps text-outline">Taxes</p>
+                <p class="data-mono text-body-sm"><?= e($preview['tax_lines_label'] ?? '') ?></p>
             </div>
             <div>
-                <p class="label-caps text-outline">Check-in / out</p>
-                <p class="data-mono text-body-sm">
-                    <?= e($preview['check_in_time']) ?> / <?= e($preview['check_out_time']) ?>
-                </p>
+                <p class="label-caps text-outline">Check-out</p>
+                <p class="data-mono text-body-sm"><?= e($preview['check_out_time']) ?></p>
             </div>
         </div>
     <?php endif; ?>
@@ -41,7 +39,7 @@
                 <div>
                     <p class="text-title-sm">Hotel settings</p>
                     <p class="text-body-sm text-on-surface-variant">
-                        Name, currency, tax, check-in/out times.
+                        Name, currency, taxes (GETF / NHIL / VAT), checkout time.
                     </p>
                 </div>
             </a>

@@ -110,10 +110,8 @@ final class ReservationService
      */
     public function create(array $data, ?int $staffId): array
     {
-        $checkInTime = $this->normalizeTime((string) ($data['check_in_time'] ?? '14:00'));
-        if ($checkInTime === null) {
-            return ['ok' => false, 'error' => 'Enter a valid check-in time.'];
-        }
+        // Check-in time is the moment the reservation is created (not a hotel policy setting).
+        $checkInTime = date('H:i:s');
         $checkOutTime = $this->normalizeTime(self::STANDARD_CHECK_OUT_TIME);
         assert($checkOutTime !== null);
 
@@ -208,10 +206,9 @@ final class ReservationService
             return ['ok' => false, 'error' => 'Only booked reservations can be modified here. Use Front Desk for in-house stays.'];
         }
 
-        $checkInTime = $this->normalizeTime((string) ($data['check_in_time'] ?? '14:00'));
-        if ($checkInTime === null) {
-            return ['ok' => false, 'error' => 'Enter a valid check-in time.'];
-        }
+        // Preserve original booking creation time on edit.
+        $checkInTime = $this->normalizeTime((string) ($existing['check_in_time'] ?? date('H:i:s')))
+            ?? date('H:i:s');
         $checkOutTime = $this->normalizeTime(self::STANDARD_CHECK_OUT_TIME);
         assert($checkOutTime !== null);
 

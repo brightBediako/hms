@@ -61,8 +61,9 @@ final class SettingsController
         $data = $validator->validate($request->post(), [
             'hotel_name' => 'required|max:100',
             'currency' => 'required|max:3',
-            'tax_rate_percent' => 'required',
-            'check_in_time' => 'required',
+            'tax_getf_percent' => 'required',
+            'tax_nhil_percent' => 'required',
+            'tax_vat_percent' => 'required',
             'check_out_time' => 'required',
         ]);
 
@@ -75,8 +76,9 @@ final class SettingsController
         $result = $this->settings->updateHotelSettings([
             'hotel_name' => (string) $data['hotel_name'],
             'currency' => (string) $data['currency'],
-            'tax_rate_percent' => (string) $data['tax_rate_percent'],
-            'check_in_time' => (string) $data['check_in_time'],
+            'tax_getf_percent' => (string) $data['tax_getf_percent'],
+            'tax_nhil_percent' => (string) $data['tax_nhil_percent'],
+            'tax_vat_percent' => (string) $data['tax_vat_percent'],
             'check_out_time' => (string) $data['check_out_time'],
         ], Auth::id());
 

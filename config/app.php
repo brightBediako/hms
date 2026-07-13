@@ -12,7 +12,7 @@ return [
     'key' => (string) Env::get('APP_KEY', ''),
     'timezone' => (string) Env::get('TIMEZONE', 'Africa/Accra'),
     'currency' => (string) Env::get('CURRENCY', 'GHS'),
-    'tax_rate' => (float) Env::get('TAX_RATE', '0.125'),
+    'tax_rate' => (float) Env::get('TAX_RATE', '0.20'),
     'session_lifetime' => Env::int('SESSION_LIFETIME', 120),
     'session_secure' => Env::bool('SESSION_SECURE', false),
     'trust_proxy' => Env::bool('TRUST_PROXY', false),

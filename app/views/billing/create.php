@@ -2,6 +2,7 @@
 /** @var list<array<string, mixed>> $reservations */
 /** @var int $selectedReservationId */
 /** @var float $taxRatePercent */
+/** @var string $taxLinesLabel */
 /** @var array<string, string> $errors */
 ?>
 <div class="mx-auto max-w-xl space-y-stack-gap">
@@ -45,7 +46,7 @@
             <label class="flex items-center gap-2 text-body-sm">
                 <input type="checkbox" name="include_tax" value="1" checked
                        class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary">
-                Include tax line (<?= e((string) $taxRatePercent) ?>%)
+                Include taxes (<?= e((string) ($taxLinesLabel ?? ($taxRatePercent . '%'))) ?>)
             </label>
 
             <div class="flex gap-2">

@@ -43,7 +43,7 @@ final class AuthController
         }
 
         Session::flash('success', 'Welcome back.');
-        redirect('/dashboard');
+        redirect(Auth::homePath());
     }
 
     public function logout(Request $request): void

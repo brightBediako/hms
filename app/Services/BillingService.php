@@ -78,6 +78,17 @@ final class BillingService
         return (new SettingsService())->taxRate();
     }
 
+    /** @return list<array{key: string, label: string, rate: float}> */
+    public function taxLines(): array
+    {
+        return (new SettingsService())->taxLines();
+    }
+
+    public function taxLinesLabel(): string
+    {
+        return (new SettingsService())->taxLinesLabel();
+    }
+
     public function generateInvoiceNumber(): string
     {
         $year = (int) date('Y');
@@ -157,18 +168,25 @@ final class BillingService
                 'source_module' => 'hms',
             ]);
 
-            if ($includeTax && $this->taxRate() > 0) {
-                $tax = round($roomTotal * $this->taxRate(), 2);
-                $pct = round($this->taxRate() * 100, 2);
-                $this->items->create([
-                    'invoice_id' => $invoiceId,
-                    'item_type' => 'tax',
-                    'description' => sprintf('VAT / tax (%.2f%%)', $pct),
-                    'quantity' => '1.00',
-                    'unit_price' => number_format($tax, 2, '.', ''),
-                    'line_total' => number_format($tax, 2, '.', ''),
-                    'source_module' => 'hms',
-                ]);
+            if ($includeTax) {
+                foreach ($this->taxLines() as $taxLine) {
+                    if ($taxLine['rate'] <= 0) {
+                        continue;
+                    }
+                    $tax = round($roomTotal * $taxLine['rate'], 2);
+                    if ($tax <= 0) {
+                        continue;
+                    }
+                    $this->items->create([
+                        'invoice_id' => $invoiceId,
+                        'item_type' => 'tax',
+                        'description' => sprintf('%s (%.2f%%)', $taxLine['label'], $taxLine['rate'] * 100),
+                        'quantity' => '1.00',
+                        'unit_price' => number_format($tax, 2, '.', ''),
+                        'line_total' => number_format($tax, 2, '.', ''),
+                        'source_module' => 'hms',
+                    ]);
+                }
             }
 
             $this->recalculate($invoiceId);

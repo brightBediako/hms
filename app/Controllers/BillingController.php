@@ -81,6 +81,7 @@ final class BillingController
             'reservations' => $candidates,
             'selectedReservationId' => (int) ($request->input('reservation_id') ?? 0),
             'taxRatePercent' => round($this->service->taxRate() * 100, 2),
+            'taxLinesLabel' => $this->service->taxLinesLabel(),
             'errors' => Session::pullFlash('errors') ?? [],
         ], 'app');
     }
