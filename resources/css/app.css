@@ -79,4 +79,14 @@
     vertical-align: middle;
     font-size: 20px;
   }
+
+  .hatched-bg {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.06),
+      rgba(0, 0, 0, 0.06) 5px,
+      transparent 5px,
+      transparent 10px
+    );
+  }
 }

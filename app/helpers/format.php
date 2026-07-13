@@ -128,7 +128,21 @@ if (!function_exists('nav_is_active')) {
             return $current === '/dashboard' || $current === '/';
         }
 
-        return $current === $path || str_starts_with($current, rtrim($path, '/') . '/');
+        if ($current === $path) {
+            return true;
+        }
+
+        // Prefix match, but avoid /rooms matching /rooms/types
+        $prefix = rtrim($path, '/') . '/';
+        if (!str_starts_with($current, $prefix)) {
+            return false;
+        }
+
+        if ($path === '/rooms' && str_starts_with($current, '/rooms/types')) {
+            return false;
+        }
+
+        return true;
     }
 }
 

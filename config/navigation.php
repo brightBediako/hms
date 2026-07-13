@@ -21,7 +21,7 @@ return [
             'icon' => 'calendar_month',
             'path' => '/reservations',
             'permission' => 'reservations.view',
-            'ready' => false,
+            'ready' => true,
         ],
         [
             'label' => 'Front Desk',
@@ -35,14 +35,21 @@ return [
             'icon' => 'bed',
             'path' => '/rooms',
             'permission' => 'rooms.view',
-            'ready' => false,
+            'ready' => true,
+        ],
+        [
+            'label' => 'Room Types',
+            'icon' => 'king_bed',
+            'path' => '/rooms/types',
+            'permission' => 'rooms.view',
+            'ready' => true,
         ],
         [
             'label' => 'Guests',
             'icon' => 'group',
             'path' => '/guests',
             'permission' => 'guests.view',
-            'ready' => false,
+            'ready' => true,
         ],
         [
             'label' => 'Billing',

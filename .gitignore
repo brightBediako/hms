@@ -26,6 +26,9 @@ pnpm-debug.log*
 !/storage/backups/.gitkeep
 /storage/cache/*
 !/storage/cache/.gitkeep
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+!/storage/uploads/.htaccess
 
 # User uploads (guest IDs, receipts, etc.)
 /public/uploads/*
