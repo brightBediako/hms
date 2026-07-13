@@ -7,7 +7,6 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Request;
 use App\Core\Session;
-use App\Core\Validator;
 use App\Core\View;
 use App\Models\Guest;
 use App\Models\GuestDocument;
@@ -207,41 +206,41 @@ final class GuestController
     /** @return array<string, mixed>|null */
     private function validateGuestPayload(Request $request): ?array
     {
-        $validator = new Validator();
-        $data = $validator->validate($request->post(), [
-            'full_name' => 'required|max:150',
-            'email' => 'nullable|email|max:150',
-            'phone' => 'nullable|max:30',
-            'id_type' => 'nullable|max:30',
-            'id_number' => 'nullable|max:100',
-            'nationality' => 'nullable|max:80',
-            'address' => 'nullable|max:255',
-            'notes' => 'nullable|max:2000',
-        ]);
-
-        $idType = $request->input('id_type');
-        $idType = is_string($idType) && $idType !== '' ? $idType : null;
-        if ($idType !== null && !in_array($idType, Guest::ID_TYPES, true)) {
-            Session::flash('errors', ['id_type' => 'Select a valid ID type.']);
+        $result = $this->service->normalizeFromInput($request->post());
+        if (!$result['ok']) {
+            Session::flash('errors', $result['errors']);
             Session::flash('old', $request->post());
             return null;
         }
 
-        if ($data === null) {
-            Session::flash('errors', $validator->firstErrors());
-            Session::flash('old', $request->post());
-            return null;
+        return $result['data'];
+    }
+
+    public function searchApi(Request $request): void
+    {
+        if (!Auth::can(\Permission::GUESTS_VIEW) && !Auth::can(\Permission::RESERVATIONS_VIEW) && !Auth::can(\Permission::RESERVATIONS_CREATE)) {
+            \App\Core\Response::json(['error' => 'Forbidden'], 403);
+            return;
         }
 
-        return [
-            'full_name' => (string) $data['full_name'],
-            'email' => $data['email'] !== null && $data['email'] !== '' ? (string) $data['email'] : null,
-            'phone' => $data['phone'] !== null && $data['phone'] !== '' ? (string) $data['phone'] : null,
-            'id_type' => $idType,
-            'id_number' => $data['id_number'] !== null && $data['id_number'] !== '' ? (string) $data['id_number'] : null,
-            'nationality' => $data['nationality'] !== null && $data['nationality'] !== '' ? (string) $data['nationality'] : null,
-            'address' => $data['address'] !== null && $data['address'] !== '' ? (string) $data['address'] : null,
-            'notes' => $data['notes'] !== null && $data['notes'] !== '' ? (string) $data['notes'] : null,
-        ];
+        $q = $request->input('q');
+        $q = is_string($q) ? trim($q) : '';
+        if ($q === '' || strlen($q) < 1) {
+            \App\Core\Response::json(['guests' => []]);
+            return;
+        }
+
+        $rows = $this->guests->search($q, 20);
+        $payload = array_map(static function (array $guest): array {
+            return [
+                'id' => (int) $guest['id'],
+                'full_name' => (string) $guest['full_name'],
+                'phone' => (string) ($guest['phone'] ?? ''),
+                'email' => (string) ($guest['email'] ?? ''),
+                'stay_count' => (int) ($guest['stay_count'] ?? 0),
+            ];
+        }, $rows);
+
+        \App\Core\Response::json(['guests' => $payload]);
     }
 }

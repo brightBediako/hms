@@ -16,7 +16,13 @@ if (!function_exists('e')) {
 if (!function_exists('format_money')) {
     function format_money(int|float|string|null $amount, ?string $currency = null): string
     {
-        $currency ??= (string) (\App\Core\Config::app('currency') ?? 'GHS');
+        if ($currency === null) {
+            try {
+                $currency = (new \App\Services\SettingsService())->currency();
+            } catch (Throwable) {
+                $currency = (string) (\App\Core\Config::app('currency') ?? 'GHS');
+            }
+        }
         $value = is_numeric($amount) ? (float) $amount : 0.0;
 
         return $currency . ' ' . number_format($value, 2, '.', ',');
@@ -43,6 +49,24 @@ if (!function_exists('format_datetime')) {
     function format_datetime(?string $datetime, string $format = 'd M Y H:i'): string
     {
         return format_date($datetime, $format);
+    }
+}
+
+if (!function_exists('format_time')) {
+    function format_time(?string $time, string $format = 'g:i A'): string
+    {
+        if ($time === null || $time === '') {
+            return '';
+        }
+
+        // Accept HH:MM or HH:MM:SS
+        $normalized = strlen($time) === 5 ? $time . ':00' : $time;
+        $timestamp = strtotime('1970-01-01 ' . $normalized);
+        if ($timestamp === false) {
+            return $time;
+        }
+
+        return date($format, $timestamp);
     }
 }
 
@@ -81,28 +105,11 @@ if (!function_exists('asset')) {
 if (!function_exists('hotel_name')) {
     function hotel_name(): string
     {
-        static $cached = null;
-        if (is_string($cached)) {
-            return $cached;
-        }
-
         try {
-            $stmt = \App\Core\Database::connection()->prepare(
-                'SELECT `value` FROM settings WHERE `key` = :key LIMIT 1'
-            );
-            $stmt->execute(['key' => 'hotel_name']);
-            $value = $stmt->fetchColumn();
-            if (is_string($value) && $value !== '') {
-                $cached = $value;
-                return $cached;
-            }
+            return (new \App\Services\SettingsService())->hotelName();
         } catch (Throwable) {
-            // Fall through to app name
+            return (string) \App\Core\Config::app('name', 'Hotel Management System');
         }
-
-        $cached = (string) \App\Core\Config::app('name', 'Hotel Management System');
-
-        return $cached;
     }
 }
 

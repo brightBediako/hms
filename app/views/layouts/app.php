@@ -13,6 +13,10 @@ $user = Auth::user();
 $flashSuccess = Session::pullFlash('success');
 $flashError = Session::pullFlash('error');
 $pageTitle = $title ?? 'Dashboard';
+$notificationUnread = 0;
+if (Auth::check() && Auth::can(\Permission::DASHBOARD_VIEW)) {
+    $notificationUnread = (new \App\Services\NotificationService())->unreadCount((int) Auth::id());
+}
 ?>
 <!DOCTYPE html>
 <html class="light" lang="en">

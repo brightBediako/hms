@@ -149,6 +149,8 @@ CREATE TABLE reservations (
   source               ENUM('walk_in','phone','advance','other') NOT NULL DEFAULT 'walk_in',
   check_in_date        DATE NOT NULL,
   check_out_date       DATE NOT NULL,
+  check_in_time        TIME NOT NULL DEFAULT '14:00:00',
+  check_out_time       TIME NOT NULL DEFAULT '12:00:00',
   actual_check_in      TIMESTAMP NULL,
   actual_check_out     TIMESTAMP NULL,
   adults               TINYINT UNSIGNED NOT NULL DEFAULT 1,

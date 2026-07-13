@@ -7,9 +7,12 @@ use App\Core\CSRF;
 
 /** @var string $pageTitle */
 /** @var array<string, mixed>|null $user */
+/** @var int $notificationUnread */
 
 $canCheckIn = Auth::can(\Permission::FRONTDESK_CHECKIN);
 $canCreateReservation = Auth::can(\Permission::RESERVATIONS_CREATE);
+$canNotifications = Auth::can(\Permission::DASHBOARD_VIEW);
+$notificationUnread = $notificationUnread ?? 0;
 ?>
 <header class="fixed right-0 top-0 z-20 flex h-topbar items-center justify-between border-b border-outline-variant bg-surface px-4 lg:left-sidebar lg:px-6">
     <div class="flex min-w-0 flex-1 items-center gap-3">
@@ -34,18 +37,26 @@ $canCreateReservation = Auth::can(\Permission::RESERVATIONS_CREATE);
     <div class="flex shrink-0 items-center gap-2 sm:gap-4">
         <div class="hidden items-center gap-2 sm:flex">
             <?php if ($canCheckIn): ?>
-                <a href="<?= e(url('/frontdesk')) ?>"
-                   class="btn-outline pointer-events-none opacity-70"
-                   title="Check-In — Front Desk module coming soon"
-                   aria-disabled="true">Check In</a>
+                <a href="<?= e(url('/frontdesk')) ?>" class="btn-outline">Check In</a>
             <?php endif; ?>
             <?php if ($canCreateReservation): ?>
-                <a href="<?= e(url('/reservations')) ?>"
-                   class="btn-action pointer-events-none opacity-70"
-                   title="New Reservation — Reservations module coming soon"
-                   aria-disabled="true">New Reservation</a>
+                <a href="<?= e(url('/reservations/create')) ?>" class="btn-action">New Reservation</a>
             <?php endif; ?>
         </div>
+
+        <?php if ($canNotifications): ?>
+            <a href="<?= e(url('/notifications')) ?>"
+               class="relative btn-ghost !px-2"
+               title="Notifications"
+               aria-label="Notifications<?= $notificationUnread > 0 ? ' (' . $notificationUnread . ' unread)' : '' ?>">
+                <span class="material-symbols-outlined">notifications</span>
+                <?php if ($notificationUnread > 0): ?>
+                    <span class="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded bg-secondary-container px-1 text-[10px] font-bold text-on-secondary-container">
+                        <?= $notificationUnread > 99 ? '99+' : (int) $notificationUnread ?>
+                    </span>
+                <?php endif; ?>
+            </a>
+        <?php endif; ?>
 
         <div class="hidden h-6 w-px bg-outline-variant sm:block"></div>
 

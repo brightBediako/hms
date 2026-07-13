@@ -6,15 +6,18 @@ namespace App\Core;
 
 final class View
 {
-    /** @param array<string, mixed> $data */
-    public static function render(string $view, array $data = [], ?string $layout = null): void
+    /**
+     * @param array<string, mixed> $vars Variables extracted into the view scope.
+     *        Parameter must not be named $data — EXTR_SKIP would skip a 'data' key.
+     */
+    public static function render(string $view, array $vars = [], ?string $layout = null): void
     {
         $viewFile = HMS_ROOT . '/app/views/' . str_replace('.', '/', $view) . '.php';
         if (!is_file($viewFile)) {
             throw new \RuntimeException('View not found: ' . $view);
         }
 
-        extract($data, EXTR_SKIP);
+        extract($vars, EXTR_SKIP);
 
         ob_start();
         require $viewFile;

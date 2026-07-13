@@ -1,10 +1,16 @@
 <?php
 /** @var array<string, mixed> $reservation */
+/** @var array<string, mixed>|null $invoice */
 /** @var bool $canEdit */
 /** @var bool $canCancel */
+/** @var bool $canViewBilling */
 /** @var \App\Services\ReservationService $reservationService */
+/** @var \App\Services\BillingService|null $billingService */
 
 $chip = $reservationService->chipClasses((string) $reservation['status']);
+$invoice = $invoice ?? null;
+$canViewBilling = $canViewBilling ?? false;
+$billingService = $billingService ?? new \App\Services\BillingService();
 ?>
 <div class="space-y-stack-gap">
     <div class="flex flex-wrap items-start justify-between gap-3">
@@ -53,11 +59,17 @@ $chip = $reservationService->chipClasses((string) $reservation['status']);
                 </div>
                 <div>
                     <p class="label-caps mb-1 text-outline">Check-in</p>
-                    <p class="data-mono text-body-sm"><?= e(format_date((string) $reservation['check_in_date'])) ?></p>
+                    <p class="data-mono text-body-sm">
+                        <?= e(format_date((string) $reservation['check_in_date'])) ?>
+                        · <?= e(format_time((string) ($reservation['check_in_time'] ?? '14:00:00'))) ?>
+                    </p>
                 </div>
                 <div>
                     <p class="label-caps mb-1 text-outline">Check-out</p>
-                    <p class="data-mono text-body-sm"><?= e(format_date((string) $reservation['check_out_date'])) ?></p>
+                    <p class="data-mono text-body-sm">
+                        <?= e(format_date((string) $reservation['check_out_date'])) ?>
+                        · <?= e(format_time((string) ($reservation['check_out_time'] ?? '12:00:00'))) ?>
+                    </p>
                 </div>
                 <div>
                     <p class="label-caps mb-1 text-outline">Occupancy</p>
@@ -91,27 +103,49 @@ $chip = $reservationService->chipClasses((string) $reservation['status']);
             <?php endif; ?>
         </section>
 
-        <?php if ($canCancel): ?>
-            <section class="surface-card space-y-4 p-6">
-                <h2 class="text-title-sm text-on-surface">Cancel booking</h2>
-                <p class="text-body-sm text-on-surface-variant">
-                    Cancelling frees the room for other stays when no other active booking remains.
-                </p>
+        <section class="surface-card space-y-4 p-6">
+            <h2 class="text-title-sm text-on-surface">Actions</h2>
+
+            <?php if (!empty($invoice) && !empty($canViewBilling)): ?>
+                <div class="space-y-2 rounded border border-outline-variant p-3">
+                    <p class="label-caps text-outline">Billing</p>
+                    <a class="data-mono text-body-sm font-semibold text-primary-container"
+                       href="<?= e(url('/billing/' . $invoice['id'])) ?>">
+                        <?= e((string) $invoice['invoice_number']) ?>
+                    </a>
+                    <p class="text-[11px] text-on-surface-variant">
+                        <?= e($billingService->labelForStatus((string) $invoice['status'])) ?>
+                        · Paid <?= e(format_money($invoice['amount_paid'])) ?>
+                        · Due <?= e(format_money($invoice['balance_due'])) ?>
+                    </p>
+                    <?php if ((float) $invoice['balance_due'] > 0 && \App\Core\Auth::can(\Permission::PAYMENTS_RECORD)): ?>
+                        <a href="<?= e(url('/payments/create?invoice_id=' . (int) $invoice['id'])) ?>" class="btn-outline mt-2 inline-flex">
+                            Record another payment
+                        </a>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+
+            <p class="text-body-sm text-on-surface-variant">
+                Check-in, check-out, transfer, and stay extension are handled at Front Desk.
+            </p>
+            <a href="<?= e(url('/frontdesk?selected=' . (int) $reservation['id'])) ?>" class="btn-outline">
+                Open in Front Desk
+            </a>
+
+            <?php if ($canCancel): ?>
                 <form method="post" action="<?= e(url('/reservations/' . $reservation['id'] . '/cancel')) ?>"
-                      class="space-y-3" onsubmit="return confirm('Cancel this reservation?');">
+                      class="space-y-3 border-t border-outline-variant pt-4"
+                      onsubmit="return confirm('Cancel this reservation?');">
                     <?= \App\Core\CSRF::field() ?>
                     <div>
-                        <label class="label-caps mb-1 block text-outline" for="cancellation_reason">Reason</label>
+                        <label class="label-caps mb-1 block text-outline" for="cancellation_reason">Cancel reason</label>
                         <input id="cancellation_reason" name="cancellation_reason" class="input-field"
                                placeholder="Optional">
                     </div>
                     <button type="submit" class="btn-outline border-error text-error">Cancel reservation</button>
                 </form>
-            </section>
-        <?php else: ?>
-            <section class="surface-card p-6 text-body-sm text-on-surface-variant">
-                Check-in and check-out actions will live under Front Desk (feature 09).
-            </section>
-        <?php endif; ?>
+            <?php endif; ?>
+        </section>
     </div>
 </div>

@@ -11,12 +11,39 @@ use App\Models\Room;
 
 final class ReservationService
 {
+    /** Hotel policy: planned check-out is always noon. */
+    public const STANDARD_CHECK_OUT_TIME = '12:00';
+
     public function __construct(
         private readonly Reservation $reservations = new Reservation(),
         private readonly AvailabilityService $availability = new AvailabilityService(),
         private readonly Room $rooms = new Room(),
         private readonly Guest $guests = new Guest(),
     ) {
+    }
+
+    /**
+     * Normalize HH:MM or HH:MM:SS to HH:MM:SS for MySQL TIME columns.
+     */
+    public function normalizeTime(string $time): ?string
+    {
+        $time = trim($time);
+        if (!preg_match('/^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/', $time, $m)) {
+            return null;
+        }
+
+        return sprintf('%02d:%02d:%02d', (int) $m[1], (int) $m[2], isset($m[3]) ? (int) $m[3] : 0);
+    }
+
+    /** Display helper: TIME → HH:MM for form inputs. */
+    public function timeForInput(?string $time, string $fallback = '12:00'): string
+    {
+        if ($time === null || $time === '') {
+            return $fallback;
+        }
+        $normalized = $this->normalizeTime($time);
+
+        return $normalized !== null ? substr($normalized, 0, 5) : $fallback;
     }
 
     public function labelForStatus(string $status): string
@@ -83,27 +110,40 @@ final class ReservationService
      */
     public function create(array $data, ?int $staffId): array
     {
-        $check = $this->validateStay($data);
-        if ($check !== null) {
-            return $check;
+        $checkInTime = $this->normalizeTime((string) ($data['check_in_time'] ?? '14:00'));
+        if ($checkInTime === null) {
+            return ['ok' => false, 'error' => 'Enter a valid check-in time.'];
         }
-
-        $conflicts = $this->availability->conflicts(
-            (int) $data['room_id'],
-            (string) $data['check_in_date'],
-            (string) $data['check_out_date']
-        );
-        if ($conflicts !== []) {
-            return [
-                'ok' => false,
-                'error' => 'That room is not available for the selected dates.',
-                'conflicts' => $conflicts,
-            ];
-        }
+        $checkOutTime = $this->normalizeTime(self::STANDARD_CHECK_OUT_TIME);
+        assert($checkOutTime !== null);
 
         $pdo = Database::connection();
         $pdo->beginTransaction();
         try {
+            if (!empty($data['new_guest']) && is_array($data['new_guest'])) {
+                $data['guest_id'] = $this->guests->create($data['new_guest']);
+            }
+
+            $check = $this->validateStay($data);
+            if ($check !== null) {
+                $pdo->rollBack();
+                return $check;
+            }
+
+            $conflicts = $this->availability->conflicts(
+                (int) $data['room_id'],
+                (string) $data['check_in_date'],
+                (string) $data['check_out_date']
+            );
+            if ($conflicts !== []) {
+                $pdo->rollBack();
+                return [
+                    'ok' => false,
+                    'error' => 'That room is not available for the selected dates.',
+                    'conflicts' => $conflicts,
+                ];
+            }
+
             $id = $this->reservations->create([
                 'booking_reference' => $this->generateReference(),
                 'guest_id' => (int) $data['guest_id'],
@@ -112,6 +152,8 @@ final class ReservationService
                 'source' => (string) $data['source'],
                 'check_in_date' => (string) $data['check_in_date'],
                 'check_out_date' => (string) $data['check_out_date'],
+                'check_in_time' => $checkInTime,
+                'check_out_time' => $checkOutTime,
                 'adults' => (int) $data['adults'],
                 'children' => (int) $data['children'],
                 'agreed_rate' => $data['agreed_rate'],
@@ -122,9 +164,31 @@ final class ReservationService
             $this->syncRoomStatusAfterBooking((int) $data['room_id'], $staffId);
             $pdo->commit();
 
+            $created = $this->reservations->findById($id);
+            if ($created !== null) {
+                (new NotificationService())->reservationCreated(
+                    $id,
+                    (string) $created['booking_reference'],
+                    (string) $created['guest_name'],
+                    (string) $created['room_number'],
+                    $staffId,
+                );
+                $audit = new AuditService();
+                $audit->log(
+                    'reservation.create',
+                    'reservations',
+                    $id,
+                    null,
+                    $audit->snapshot($created, ['booking_reference', 'guest_id', 'room_id', 'check_in_date', 'check_out_date', 'check_in_time', 'check_out_time', 'agreed_rate', 'status', 'source']),
+                    $staffId,
+                );
+            }
+
             return ['ok' => true, 'id' => $id];
         } catch (\Throwable $e) {
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             throw $e;
         }
     }
@@ -144,37 +208,52 @@ final class ReservationService
             return ['ok' => false, 'error' => 'Only booked reservations can be modified here. Use Front Desk for in-house stays.'];
         }
 
-        $check = $this->validateStay($data);
-        if ($check !== null) {
-            return $check;
+        $checkInTime = $this->normalizeTime((string) ($data['check_in_time'] ?? '14:00'));
+        if ($checkInTime === null) {
+            return ['ok' => false, 'error' => 'Enter a valid check-in time.'];
         }
-
-        $newRoomId = (int) $data['room_id'];
-        $oldRoomId = (int) $existing['room_id'];
-
-        $conflicts = $this->availability->conflicts(
-            $newRoomId,
-            (string) $data['check_in_date'],
-            (string) $data['check_out_date'],
-            $id
-        );
-        if ($conflicts !== []) {
-            return [
-                'ok' => false,
-                'error' => 'That room is not available for the selected dates.',
-                'conflicts' => $conflicts,
-            ];
-        }
+        $checkOutTime = $this->normalizeTime(self::STANDARD_CHECK_OUT_TIME);
+        assert($checkOutTime !== null);
 
         $pdo = Database::connection();
         $pdo->beginTransaction();
         try {
+            if (!empty($data['new_guest']) && is_array($data['new_guest'])) {
+                $data['guest_id'] = $this->guests->create($data['new_guest']);
+            }
+
+            $check = $this->validateStay($data);
+            if ($check !== null) {
+                $pdo->rollBack();
+                return $check;
+            }
+
+            $newRoomId = (int) $data['room_id'];
+            $oldRoomId = (int) $existing['room_id'];
+
+            $conflicts = $this->availability->conflicts(
+                $newRoomId,
+                (string) $data['check_in_date'],
+                (string) $data['check_out_date'],
+                $id
+            );
+            if ($conflicts !== []) {
+                $pdo->rollBack();
+                return [
+                    'ok' => false,
+                    'error' => 'That room is not available for the selected dates.',
+                    'conflicts' => $conflicts,
+                ];
+            }
+
             $this->reservations->update($id, [
                 'guest_id' => (int) $data['guest_id'],
                 'room_id' => $newRoomId,
                 'source' => (string) $data['source'],
                 'check_in_date' => (string) $data['check_in_date'],
                 'check_out_date' => (string) $data['check_out_date'],
+                'check_in_time' => $checkInTime,
+                'check_out_time' => $checkOutTime,
                 'adults' => (int) $data['adults'],
                 'children' => (int) $data['children'],
                 'agreed_rate' => $data['agreed_rate'],
@@ -188,9 +267,22 @@ final class ReservationService
 
             $pdo->commit();
 
+            $updated = $this->reservations->findById($id);
+            $audit = new AuditService();
+            $audit->log(
+                'reservation.update',
+                'reservations',
+                $id,
+                $audit->snapshot($existing, ['booking_reference', 'guest_id', 'room_id', 'check_in_date', 'check_out_date', 'check_in_time', 'check_out_time', 'agreed_rate', 'status', 'source']),
+                $audit->snapshot($updated, ['booking_reference', 'guest_id', 'room_id', 'check_in_date', 'check_out_date', 'check_in_time', 'check_out_time', 'agreed_rate', 'status', 'source']),
+                $staffId,
+            );
+
             return ['ok' => true];
         } catch (\Throwable $e) {
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             throw $e;
         }
     }
@@ -215,6 +307,16 @@ final class ReservationService
             $this->reservations->cancel($id, $reason !== null && trim($reason) !== '' ? trim($reason) : null);
             $this->releaseRoomIfIdle((int) $existing['room_id'], $staffId, $id);
             $pdo->commit();
+
+            $audit = new AuditService();
+            $audit->log(
+                'reservation.cancel',
+                'reservations',
+                $id,
+                $audit->snapshot($existing, ['booking_reference', 'status', 'room_id', 'guest_id']),
+                ['status' => 'cancelled', 'cancellation_reason' => $reason],
+                $staffId,
+            );
 
             return ['ok' => true];
         } catch (\Throwable $e) {

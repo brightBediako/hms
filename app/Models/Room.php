@@ -195,6 +195,24 @@ final class Room
         return (int) $stmt->fetchColumn() > 0;
     }
 
+    public function setStatus(int $id, string $newStatus, ?int $changedBy = null, ?string $reason = null): void
+    {
+        $room = $this->findById($id);
+        if ($room === null || (string) $room['status'] === $newStatus) {
+            return;
+        }
+
+        $this->update($id, [
+            'room_type_id' => (int) $room['room_type_id'],
+            'room_number' => (string) $room['room_number'],
+            'floor' => $room['floor'],
+            'status' => $newStatus,
+            'notes' => $room['notes'],
+            'changed_by' => $changedBy,
+            'status_reason' => $reason ?? 'Status update',
+        ], (string) $room['status']);
+    }
+
     /** @return list<array<string, mixed>> */
     public function statusHistory(int $roomId, int $limit = 10): array
     {

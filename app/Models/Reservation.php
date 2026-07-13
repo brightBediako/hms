@@ -113,10 +113,12 @@ final class Reservation
         $stmt = Database::connection()->prepare(
             'INSERT INTO reservations (
                 booking_reference, guest_id, room_id, booked_by, source,
-                check_in_date, check_out_date, adults, children, agreed_rate, status, notes
+                check_in_date, check_out_date, check_in_time, check_out_time,
+                adults, children, agreed_rate, status, notes
              ) VALUES (
                 :booking_reference, :guest_id, :room_id, :booked_by, :source,
-                :check_in_date, :check_out_date, :adults, :children, :agreed_rate, :status, :notes
+                :check_in_date, :check_out_date, :check_in_time, :check_out_time,
+                :adults, :children, :agreed_rate, :status, :notes
              )'
         );
         $stmt->execute([
@@ -127,6 +129,8 @@ final class Reservation
             'source' => $data['source'],
             'check_in_date' => $data['check_in_date'],
             'check_out_date' => $data['check_out_date'],
+            'check_in_time' => $data['check_in_time'],
+            'check_out_time' => $data['check_out_time'],
             'adults' => $data['adults'],
             'children' => $data['children'],
             'agreed_rate' => $data['agreed_rate'],
@@ -147,6 +151,8 @@ final class Reservation
                 source = :source,
                 check_in_date = :check_in_date,
                 check_out_date = :check_out_date,
+                check_in_time = :check_in_time,
+                check_out_time = :check_out_time,
                 adults = :adults,
                 children = :children,
                 agreed_rate = :agreed_rate,
@@ -160,6 +166,8 @@ final class Reservation
             'source' => $data['source'],
             'check_in_date' => $data['check_in_date'],
             'check_out_date' => $data['check_out_date'],
+            'check_in_time' => $data['check_in_time'],
+            'check_out_time' => $data['check_out_time'],
             'adults' => $data['adults'],
             'children' => $data['children'],
             'agreed_rate' => $data['agreed_rate'],
@@ -180,6 +188,146 @@ final class Reservation
             'status' => 'cancelled',
             'cancellation_reason' => $reason,
         ]);
+    }
+
+    public function markCheckedIn(int $id, int $roomId): void
+    {
+        $stmt = Database::connection()->prepare(
+            'UPDATE reservations SET
+                status = :status,
+                room_id = :room_id,
+                actual_check_in = CURRENT_TIMESTAMP
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'id' => $id,
+            'status' => 'checked_in',
+            'room_id' => $roomId,
+        ]);
+    }
+
+    public function markCheckedOut(int $id): void
+    {
+        $stmt = Database::connection()->prepare(
+            'UPDATE reservations SET
+                status = :status,
+                actual_check_out = CURRENT_TIMESTAMP
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'id' => $id,
+            'status' => 'checked_out',
+        ]);
+    }
+
+    public function assignRoom(int $id, int $roomId): void
+    {
+        $stmt = Database::connection()->prepare(
+            'UPDATE reservations SET room_id = :room_id WHERE id = :id'
+        );
+        $stmt->execute([
+            'id' => $id,
+            'room_id' => $roomId,
+        ]);
+    }
+
+    public function extendStay(int $id, string $newCheckOut): void
+    {
+        $stmt = Database::connection()->prepare(
+            'UPDATE reservations SET check_out_date = :check_out_date WHERE id = :id'
+        );
+        $stmt->execute([
+            'id' => $id,
+            'check_out_date' => $newCheckOut,
+        ]);
+    }
+
+    /**
+     * Booked arrivals for a date (includes overdue arrivals still booked).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function arrivalsForDate(string $date): array
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT r.*,
+                    g.full_name AS guest_name,
+                    g.phone AS guest_phone,
+                    g.id_type AS guest_id_type,
+                    g.id_number AS guest_id_number,
+                    rm.room_number,
+                    rm.status AS room_status,
+                    rt.name AS room_type_name
+             FROM reservations r
+             INNER JOIN guests g ON g.id = r.guest_id
+             INNER JOIN rooms rm ON rm.id = r.room_id
+             INNER JOIN room_types rt ON rt.id = rm.room_type_id
+             WHERE r.status = \'booked\'
+               AND r.check_in_date <= :date
+             ORDER BY r.check_in_date ASC, g.full_name ASC'
+        );
+        $stmt->execute(['date' => $date]);
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $rows;
+    }
+
+    /**
+     * In-house departures due on or before date.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function departuresForDate(string $date): array
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT r.*,
+                    g.full_name AS guest_name,
+                    g.phone AS guest_phone,
+                    rm.room_number,
+                    rm.status AS room_status,
+                    rt.name AS room_type_name
+             FROM reservations r
+             INNER JOIN guests g ON g.id = r.guest_id
+             INNER JOIN rooms rm ON rm.id = r.room_id
+             INNER JOIN room_types rt ON rt.id = rm.room_type_id
+             WHERE r.status = \'checked_in\'
+               AND r.check_out_date <= :date
+             ORDER BY r.check_out_date ASC, g.full_name ASC'
+        );
+        $stmt->execute(['date' => $date]);
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $rows;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function inHouse(): array
+    {
+        $stmt = Database::connection()->query(
+            'SELECT r.*,
+                    g.full_name AS guest_name,
+                    g.phone AS guest_phone,
+                    rm.room_number,
+                    rm.status AS room_status,
+                    rt.name AS room_type_name
+             FROM reservations r
+             INNER JOIN guests g ON g.id = r.guest_id
+             INNER JOIN rooms rm ON rm.id = r.room_id
+             INNER JOIN room_types rt ON rt.id = rm.room_type_id
+             WHERE r.status = \'checked_in\'
+             ORDER BY rm.room_number ASC'
+        );
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $rows;
     }
 
     public function nextReferenceNumber(int $year): int

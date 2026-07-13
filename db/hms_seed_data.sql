@@ -110,7 +110,7 @@ INSERT INTO settings (`key`, `value`) VALUES
   ('currency',           'GHS'),
   ('default_tax_rate',   '0.00'),
   ('check_in_time',      '14:00'),
-  ('check_out_time',     '11:00');
+  ('check_out_time',     '12:00');
 
 -- ----------------------------------------
 -- First System Administrator account

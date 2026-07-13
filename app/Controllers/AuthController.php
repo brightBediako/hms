@@ -52,14 +52,4 @@ final class AuthController
         Session::flash('success', 'You have been signed out.');
         redirect('/login');
     }
-
-    public function dashboard(Request $request): void
-    {
-        View::render('dashboard/index', [
-            'title' => 'Dashboard',
-            'user' => Auth::user(),
-            'permissions' => Auth::permissions(),
-            'canDashboard' => Auth::can(\Permission::DASHBOARD_VIEW),
-        ], 'app');
-    }
 }

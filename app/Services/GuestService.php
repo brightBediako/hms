@@ -168,4 +168,49 @@ final class GuestService
 
         return preg_replace('/[^a-zA-Z0-9_-]/', '_', $type) . ($ext !== '' ? '.' . $ext : '');
     }
+
+    /**
+     * Normalize guest profile fields from a request payload.
+     *
+     * @param array<string, mixed> $input
+     * @return array{ok: true, data: array<string, mixed>}|array{ok: false, errors: array<string, string>}
+     */
+    public function normalizeFromInput(array $input): array
+    {
+        $validator = new \App\Core\Validator();
+        $data = $validator->validate($input, [
+            'full_name' => 'required|max:150',
+            'email' => 'nullable|email|max:150',
+            'phone' => 'nullable|max:30',
+            'id_type' => 'nullable|max:30',
+            'id_number' => 'nullable|max:100',
+            'nationality' => 'nullable|max:80',
+            'address' => 'nullable|max:255',
+            'notes' => 'nullable|max:2000',
+        ]);
+
+        $idType = $input['id_type'] ?? null;
+        $idType = is_string($idType) && $idType !== '' ? $idType : null;
+        if ($idType !== null && !in_array($idType, Guest::ID_TYPES, true)) {
+            return ['ok' => false, 'errors' => ['id_type' => 'Select a valid ID type.']];
+        }
+
+        if ($data === null) {
+            return ['ok' => false, 'errors' => $validator->firstErrors()];
+        }
+
+        return [
+            'ok' => true,
+            'data' => [
+                'full_name' => (string) $data['full_name'],
+                'email' => $data['email'] !== null && $data['email'] !== '' ? (string) $data['email'] : null,
+                'phone' => $data['phone'] !== null && $data['phone'] !== '' ? (string) $data['phone'] : null,
+                'id_type' => $idType,
+                'id_number' => $data['id_number'] !== null && $data['id_number'] !== '' ? (string) $data['id_number'] : null,
+                'nationality' => $data['nationality'] !== null && $data['nationality'] !== '' ? (string) $data['nationality'] : null,
+                'address' => $data['address'] !== null && $data['address'] !== '' ? (string) $data['address'] : null,
+                'notes' => $data['notes'] !== null && $data['notes'] !== '' ? (string) $data['notes'] : null,
+            ],
+        ];
+    }
 }
